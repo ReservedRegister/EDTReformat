@@ -206,22 +206,22 @@ public class FormatFile implements Runnable
 		System.out.println("Finished working on: " + file_name);
 	}
 	
-	private List<Object> removeComments(String line, boolean in_brackets_last_line)
+	private List<Object> removeComments(String line, boolean in_quotations_last_line)
 	{
 		List<Object> data = new ArrayList<>();
 		
 		String removed_comments = line;
-		boolean in_brackets = in_brackets_last_line;
+		boolean in_quotations = in_quotations_last_line;
 		int found = 0;
 		
 		for(int i = 0; i < line.length(); i++)
 		{
 			if(line.charAt(i) == '"')
 			{
-				if(in_brackets == false)
-					in_brackets = true;
+				if(in_quotations == false)
+					in_quotations = true;
 				else
-					in_brackets = false;
+					in_quotations = false;
 			}
 			
 			if(line.charAt(i) == '/')
@@ -231,7 +231,7 @@ public class FormatFile implements Runnable
 			else
 				found = 0;
 			
-			if(found == 2 && !in_brackets)
+			if(found == 2 && !in_quotations)
 			{
 				removed_comments = line.substring(0, i-1);
 				break;
@@ -239,7 +239,7 @@ public class FormatFile implements Runnable
 		}
 		
 		data.add(removed_comments);
-		data.add(in_brackets);
+		data.add(in_quotations);
 		return data;
 	}
 	
@@ -284,12 +284,12 @@ public class FormatFile implements Runnable
 	private List<String> getFirstSection(int start_index)
 	{
 		String start_line = file_lines.get(start_index).trim();
-		boolean in_brackets = false;
-		List<Object> remove_comments_data = removeComments(start_line, in_brackets);
+		boolean in_quotations = false;
+		List<Object> remove_comments_data = removeComments(start_line, in_quotations);
 		
 		start_line = (String) remove_comments_data.get(0);
 		start_line = start_line.trim();
-		in_brackets = (boolean) remove_comments_data.get(1);
+		in_quotations = (boolean) remove_comments_data.get(1);
 		
 		List<String> create_lines = new ArrayList<>();
 		List<String> items = new ArrayList<>();
@@ -318,10 +318,10 @@ public class FormatFile implements Runnable
 		{
 			for(int i = start_index+1; i < file_lines.size(); i++)
 			{
-				List<Object> data = removeComments(file_lines.get(i), in_brackets);
+				List<Object> data = removeComments(file_lines.get(i), in_quotations);
 				String file_line = (String) data.get(0);
 				file_line = file_line.trim();
-				in_brackets = (boolean) data.get(1);
+				in_quotations = (boolean) data.get(1);
 				
 				file_line = replaceAnyCase(file_line, "values").trim();
 				
@@ -351,7 +351,7 @@ public class FormatFile implements Runnable
 			if(create_line.trim().isEmpty())
 				continue;
 			
-			in_brackets = false;
+			in_quotations = false;
 			int start = 0;
 			
 			for(int i = 0; i < create_line.length(); i++)
@@ -361,20 +361,20 @@ public class FormatFile implements Runnable
 				
 				if(create_line.charAt(i) == '"')
 				{
-					if(!in_brackets)
-						in_brackets = true;
+					if(!in_quotations)
+						in_quotations = true;
 					else
-						in_brackets = false;
+						in_quotations = false;
 					
 					add_line = actual_line;
 					start = i+1;
 				}
-				else if(create_line.charAt(i) == ' ' && !in_brackets)
+				else if(create_line.charAt(i) == ' ' && !in_quotations)
 				{
 					add_line = actual_line;
 					start = i+1;
 				}
-				else if(create_line.charAt(i) == '	' && !in_brackets)
+				else if(create_line.charAt(i) == '	' && !in_quotations)
 				{
 					add_line = actual_line;
 					start = i+1;
@@ -407,11 +407,11 @@ public class FormatFile implements Runnable
 	private List<String> getSecondSection(int start_index)
 	{
 		String start_line = file_lines.get(start_index).trim();
-		boolean in_brackets = false;
-		List<Object> remove_comments_data = removeComments(start_line, in_brackets);
+		boolean in_quotations = false;
+		List<Object> remove_comments_data = removeComments(start_line, in_quotations);
 		start_line = (String) remove_comments_data.get(0);
 		start_line = start_line.trim();
-		in_brackets = (boolean) remove_comments_data.get(1);
+		in_quotations = (boolean) remove_comments_data.get(1);
 		
 		List<String> value_lines = new ArrayList<>();
 		List<String> items = new ArrayList<>();
@@ -427,10 +427,10 @@ public class FormatFile implements Runnable
 		{
 			for(int i = start_index+1; i < file_lines.size(); i++)
 			{
-				List<Object> data = removeComments(file_lines.get(i), in_brackets);
+				List<Object> data = removeComments(file_lines.get(i), in_quotations);
 				String file_line = (String) data.get(0);
 				file_line = file_line.trim();
-				in_brackets = (boolean) data.get(1);
+				in_quotations = (boolean) data.get(1);
 				
 				if(file_line.isEmpty())
 					value_lines.add("\n");
@@ -463,12 +463,12 @@ public class FormatFile implements Runnable
 		else
 			end_ent = start_index;
 		
-		in_brackets = false;
+		in_quotations = false;
 		String persistant_string = "";
 		
 		for(String value_line : value_lines)
 		{
-			if(value_line.trim().isEmpty() && !in_brackets)
+			if(value_line.trim().isEmpty() && !in_quotations)
 				continue;
 			
 			int start = 0;
@@ -480,14 +480,14 @@ public class FormatFile implements Runnable
 				
 				if(value_line.charAt(i) == '"')
 				{
-					if(!in_brackets)
+					if(!in_quotations)
 					{
 						add_line = actual_line;
-						in_brackets = true;
+						in_quotations = true;
 					}
 					else
 					{
-						in_brackets = false;
+						in_quotations = false;
 						add_line = persistant_string + actual_line;
 						
 						if(actual_line.isEmpty() && persistant_string.isEmpty())
@@ -498,21 +498,21 @@ public class FormatFile implements Runnable
 					
 					start = i+1;
 				}
-				else if(value_line.charAt(i) == ' ' && !in_brackets)
+				else if(value_line.charAt(i) == ' ' && !in_quotations)
 				{
 					add_line = actual_line;
 					start = i+1;
 				}
-				else if(value_line.charAt(i) == '	' && !in_brackets)
+				else if(value_line.charAt(i) == '	' && !in_quotations)
 				{
 					add_line = actual_line;
 					start = i+1;
 				}
 				
-				if(i == value_line.length() - 1 && value_line.charAt(i) != '"' && !in_brackets)
+				if(i == value_line.length() - 1 && value_line.charAt(i) != '"' && !in_quotations)
 					add_line = value_line.substring(start, i+1).trim();
 				
-				if(i == value_line.length() - 1 && in_brackets)
+				if(i == value_line.length() - 1 && in_quotations)
 				{
 					String full_line = value_line.substring(start, i+1).trim();
 					persistant_string = persistant_string + full_line + "\n";
