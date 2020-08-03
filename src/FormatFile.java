@@ -177,6 +177,8 @@ public class FormatFile implements Runnable
 	
 	public void reformatEDT()
 	{
+		String comments_buffer = "";
+		
 		for(int i = writeStart(); i < file_lines.size(); i++)
 		{
 			String file_line = file_lines.get(i).replace("\"", "").trim();
@@ -184,7 +186,12 @@ public class FormatFile implements Runnable
 			if(i > end_ent)
 			{
 				if(file_line.startsWith("//"))
-					writeNewEDTFile(file_line, "", true);
+					comments_buffer = comments_buffer + file_line + "\n";
+				else
+				{
+					writeNewEDTFile(comments_buffer.trim(), "", true);
+					comments_buffer = "";
+				}
 			}
 			
 			if(file_line.startsWith("create"))
