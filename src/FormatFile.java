@@ -131,18 +131,39 @@ public class FormatFile implements Runnable
 	public int copyConsoleCommands(int start_index)
 	{
 		String items = "";
-		int skip = 0;
 		boolean found = false;
+		int skip = 0;
 		
 		for(int i = start_index; i < file_lines.size(); i++)
 		{
 			String file_line = file_lines.get(i);
 			
-			if(found)
+			if(file_line.contains("}"))
 			{
+				String item_to_add = "";
+				
+				if(file_line.contains("{"))
+					item_to_add = file_line.substring(file_line.indexOf("{") + 1, file_line.indexOf("}")).trim();
+				else
+					item_to_add = file_line.substring(0, file_line.indexOf("}")).trim();
+				
+				if(!item_to_add.isEmpty())
+					items = items + "\n" + "		" + item_to_add;
+				
+				skip = i;
+				break;
+			}
+			
+			if(found)
+				items = items + "\n" + "		" + file_line.trim();
+			
+			if(file_line.contains("{"))
+			{
+				String item_to_add = "";
+				
 				if(file_line.contains("}"))
 				{
-					String item_to_add = file_line.substring(0, file_line.indexOf("}")).trim();
+					item_to_add = file_line.substring(file_line.indexOf("{") + 1, file_line.indexOf("}")).trim();
 					
 					if(!item_to_add.isEmpty())
 						items = items + "\n" + "		" + item_to_add;
@@ -150,13 +171,8 @@ public class FormatFile implements Runnable
 					skip = i;
 					break;
 				}
-				
-				items = items + "\n" + "		" + file_line.trim();
-			}
-			
-			if(file_line.contains("{"))
-			{
-				String item_to_add = file_line.substring(file_line.indexOf("{") + 1).trim();
+				else
+					item_to_add = file_line.substring(file_line.indexOf("{") + 1).trim();
 				
 				if(!item_to_add.isEmpty())
 					items = items + "\n" + "		" + item_to_add;
