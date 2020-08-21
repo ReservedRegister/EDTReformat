@@ -14,6 +14,7 @@ public class FormatFile implements Runnable
 	private List<String> file_lines;
 	private int end_ent;
 	private boolean no_new_line_global;
+	private boolean in_quotations;
 	
 	public FormatFile(String file_name_in)
 	{
@@ -23,6 +24,7 @@ public class FormatFile implements Runnable
 		file_lines = readFile("./original/" + file_name);
 		end_ent = 0;
 		no_new_line_global = false;
+		in_quotations = false;
 	}
 	
 	private void emptyTheFile(String file_path, String file_name)
@@ -60,7 +62,7 @@ public class FormatFile implements Runnable
 		catch(IOException e) {}
 	}
 	
-	public void writeNewEDTFile(String write_line, String end, boolean new_line)
+	private void writeNewEDTFile(String write_line, String end, boolean new_line)
 	{
 		createEDTFile();
 		
@@ -128,7 +130,7 @@ public class FormatFile implements Runnable
 		return -1;
 	}
 	
-	public int copyConsoleCommands(int start_index)
+	private int copyConsoleCommands(int start_index)
 	{
 		String items = "";
 		boolean found = false;
@@ -229,12 +231,9 @@ public class FormatFile implements Runnable
 		System.out.println("Finished working on: " + file_name);
 	}
 	
-	private List<Object> removeComments(String line, boolean in_quotations_last_line)
+	private String removeComments(String line)
 	{
-		List<Object> data = new ArrayList<>();
-		
 		String removed_comments = line;
-		boolean in_quotations = in_quotations_last_line;
 		int found = 0;
 		
 		for(int i = 0; i < line.length(); i++)
@@ -261,9 +260,7 @@ public class FormatFile implements Runnable
 			}
 		}
 		
-		data.add(removed_comments);
-		data.add(in_quotations);
-		return data;
+		return removed_comments;
 	}
 	
 	private String replaceAnyCase(String line, String replaceString)
@@ -306,13 +303,9 @@ public class FormatFile implements Runnable
 	
 	private List<String> getFirstSection(int start_index)
 	{
+		in_quotations = false;
 		String start_line = file_lines.get(start_index).trim();
-		boolean in_quotations = false;
-		List<Object> remove_comments_data = removeComments(start_line, in_quotations);
-		
-		start_line = (String) remove_comments_data.get(0);
-		start_line = start_line.trim();
-		in_quotations = (boolean) remove_comments_data.get(1);
+		start_line = removeComments(start_line).trim();
 		
 		List<String> create_lines = new ArrayList<>();
 		List<String> items = new ArrayList<>();
@@ -341,11 +334,7 @@ public class FormatFile implements Runnable
 		{
 			for(int i = start_index+1; i < file_lines.size(); i++)
 			{
-				List<Object> data = removeComments(file_lines.get(i), in_quotations);
-				String file_line = (String) data.get(0);
-				file_line = file_line.trim();
-				in_quotations = (boolean) data.get(1);
-				
+				String file_line = removeComments(file_lines.get(i)).trim();
 				file_line = replaceAnyCase(file_line, "values").trim();
 				
 				start_brackets = searchItem(file_line, '{');
@@ -369,12 +358,13 @@ public class FormatFile implements Runnable
 		else
 			end_ent = start_index;
 		
+		in_quotations = false;
+		
 		for(String create_line : create_lines)
-		{	
+		{
 			if(create_line.trim().isEmpty())
 				continue;
 			
-			in_quotations = false;
 			int start = 0;
 			
 			for(int i = 0; i < create_line.length(); i++)
@@ -429,12 +419,9 @@ public class FormatFile implements Runnable
 	
 	private List<String> getSecondSection(int start_index)
 	{
+		in_quotations = false;
 		String start_line = file_lines.get(start_index).trim();
-		boolean in_quotations = false;
-		List<Object> remove_comments_data = removeComments(start_line, in_quotations);
-		start_line = (String) remove_comments_data.get(0);
-		start_line = start_line.trim();
-		in_quotations = (boolean) remove_comments_data.get(1);
+		start_line = removeComments(start_line).trim();
 		
 		List<String> value_lines = new ArrayList<>();
 		List<String> items = new ArrayList<>();
@@ -450,10 +437,7 @@ public class FormatFile implements Runnable
 		{
 			for(int i = start_index+1; i < file_lines.size(); i++)
 			{
-				List<Object> data = removeComments(file_lines.get(i), in_quotations);
-				String file_line = (String) data.get(0);
-				file_line = file_line.trim();
-				in_quotations = (boolean) data.get(1);
+				String file_line = removeComments(file_lines.get(i)).trim();
 				
 				if(file_line.isEmpty())
 					value_lines.add("\n");
@@ -621,7 +605,7 @@ public class FormatFile implements Runnable
 		writeNewEDTFile(" values {" + write_line, "} }", false);
 	}
 	
-	public String searchPriorityValue(List<String> value_lines, String seachItem)
+	private String searchPriorityValue(List<String> value_lines, String seachItem)
 	{
 		for(int i = 0; i < value_lines.size(); i++)
 		{

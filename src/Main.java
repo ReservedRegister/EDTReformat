@@ -14,13 +14,13 @@ public class Main
 			
 			for(String file : files)
 			{
-				if(file.contains(".edt"))
+				if(file.endsWith(".edt"))
 					threadpool.execute(new FormatFile(file));
 			}
 		}
 		catch(NullPointerException e)
 		{
-			System.out.println("Pathname argument is null!");
+			System.out.println("Directory \"original\" does not exist");
 		}
 		
 		threadpool.shutdown();
